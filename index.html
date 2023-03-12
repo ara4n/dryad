@@ -17,6 +17,7 @@ class Branch {
     length = 0;
     girthStart = 2;
     girthEnd = 0;
+    growthFactor = 1;
     angle = 0;
 
     grow = (time) => {
@@ -36,7 +37,8 @@ class Branch {
                 const branch = new Branch();
                 branch.gen = this.gen + 1;
                 branch.id = `${this.id},${i}`;
-                branch.girthStart = this.girthEnd * ratios[i];
+                branch.growthFactor = this.growthFactor * (ratios[i]*0.2 + 0.8);
+                branch.girthStart = this.girthEnd;
                 branch.angle = angles[i];
                 branch.length = 0;
                 this.branches[i] = branch;
@@ -45,7 +47,7 @@ class Branch {
         if (this.shouldTerminate()) {
             const terminate = (branch) => {
                 branch.terminated = true;
-                console.log(`terminating ${branch}`);
+                // console.log(`terminating ${branch}`);
                 for (const child of branch.branches) terminate(child);
             }
             terminate(this);
@@ -99,6 +101,8 @@ class Branch {
 
     calcLength = () => {
         if (this.branches.length > 0 || this.terminated) {
+            // XXX: rather than length growing after a branch, perhap it should stay the same and instead appear longer
+            // by branches dropping off over time.
             return this.length + (this.time - this.lastTime) / 80;
         }
         else {
@@ -110,27 +114,26 @@ class Branch {
         if (this.terminated) {
             return this.girthStart;
         }
-        return this.girthStart + (this.time - this.lastTime) / (100 * (this.gen + 1));
+        return this.girthStart + this.growthFactor * (this.time - this.lastTime) / (100 * (this.gen + 1));
     }
 
     calcGirthEnd = () => {
         if (this.terminated) {
             return this.girthEnd;
         }
-        return this.girthEnd + (this.time - this.lastTime) / (100 * (this.gen + 2));
+        return this.girthEnd + this.growthFactor * (this.time - this.lastTime) / (100 * (this.gen + 2));
     }
 
     calcBendAngle = (pos, length) => {
         //return -1 * Math.PI / 180;
-
-        // up to 1° of wobble
+        // up to 15° of wobble
         return 15 * (this.bendRand() - 0.5) * Math.PI / 180;
     }
 
     shouldBranch = () => {
         //if (this.gen > 4) return false;
         //return (Math.random() < ((this.gen + 1) / 100));
-        return (this.length > 30);
+        return (this.length > 25 + rand()*15);
         //return (Math.random() < 0.017);
     }
 
@@ -156,10 +159,14 @@ class Branch {
         // 50% split == [-maxAngle / 2, +maxAngle / 2]
         // 80% split == [0, +maxAngle]
 
-        return([
+        // console.log(branchRatios);
+
+        const angles = [
             (branchRatios[0] - this.minBranch) / (1 - this.minBranch * 2) * this.maxAngle - this.maxAngle,
-            (branchRatios[1] - this.minBranch) / (1 - this.minBranch * 2) * this.maxAngle,
-        ]);
+            -(branchRatios[1] - this.minBranch) / (1 - this.minBranch * 2) * this.maxAngle + this.maxAngle
+        ];
+        // console.log(angles);
+        return(angles);
     }
 }
 
