@@ -4,172 +4,172 @@
 "use strict";
 
 class Branch {
-	length = 0;
-	start = 0;
-	time = 0;
-	lastTime = 0;
-	gen = 0;
-	branches = [];
-	angle = 0;
-	girth = 0;
-	terminated = false;
+    length = 0;
+    start = 0;
+    time = 0;
+    lastTime = 0;
+    gen = 0;
+    branches = [];
+    angle = 0;
+    girth = 0;
+    terminated = false;
 
-	grow = (time) => {
-		this.time = time;
-		if (!this.start) {
-			this.start = time;
-			this.lastTime = time;
-		}
-		this.length = this.calcLength();
-		this.girth = this.calcGirth();
-		if (this.shouldBranch() && this.branches.length == 0 && !this.terminated) {
-			const ratios = this.calcBranchRatios();
-			const angles = this.calcBranchAngles(ratios);
-			console.log(`branch with ratios ${ratios} and angles ${angles}`);
-			for (let i = 0; i < ratios.length; i++) {
-				const branch = new Branch();
-				branch.gen = this.gen + 1;
-				branch.girth = this.girth * ratios[i];
-				branch.angle = angles[i];
-				branch.length = 0;
-				this.branches[i] = branch;
-			}
-		}
-		if (this.shouldTerminate()) {
-			const terminate = (branch) => {
-				branch.terminated = true;
-				console.log(`terminating ${branch}`);
-				for (const child of branch.branches) terminate(child);
-			}
-			terminate(this);
-		}
-		this.lastTime = time;
-	}
+    grow = (time) => {
+        this.time = time;
+        if (!this.start) {
+            this.start = time;
+            this.lastTime = time;
+        }
+        this.length = this.calcLength();
+        this.girth = this.calcGirth();
+        if (this.shouldBranch() && this.branches.length == 0 && !this.terminated) {
+            const ratios = this.calcBranchRatios();
+            const angles = this.calcBranchAngles(ratios);
+            console.log(`branch with ratios ${ratios} and angles ${angles}`);
+            for (let i = 0; i < ratios.length; i++) {
+                const branch = new Branch();
+                branch.gen = this.gen + 1;
+                branch.girth = this.girth * ratios[i];
+                branch.angle = angles[i];
+                branch.length = 0;
+                this.branches[i] = branch;
+            }
+        }
+        if (this.shouldTerminate()) {
+            const terminate = (branch) => {
+                branch.terminated = true;
+                console.log(`terminating ${branch}`);
+                for (const child of branch.branches) terminate(child);
+            }
+            terminate(this);
+        }
+        this.lastTime = time;
+    }
 
-	draw = (ctx) => {
-		ctx.beginPath();
-		ctx.lineWidth = this.girth;
-		ctx.lineCap = "round";
-		ctx.strokeStyle = "black";
-		ctx.moveTo(0, 0);
-		ctx.lineTo(0, this.length);
-		ctx.stroke();
-		//console.log(`move(0,0); lineTo(0,${this.length});`);
-		const transform = ctx.getTransform();
-		ctx.translate(0, this.length);
+    draw = (ctx) => {
+        ctx.beginPath();
+        ctx.lineWidth = this.girth;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "black";
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, this.length);
+        ctx.stroke();
+        //console.log(`move(0,0); lineTo(0,${this.length});`);
+        const transform = ctx.getTransform();
+        ctx.translate(0, this.length);
 
-		if (this.branches.length > 0) {
-			let branch = this.branches[1];
-			ctx.translate(-this.girth / 2 + branch.girth / 2, 0);
-			ctx.rotate(branch.angle);
-			branch.draw(ctx);
-			ctx.rotate(-branch.angle);
-			ctx.translate(+this.girth / 2 - branch.girth / 2, 0);
+        if (this.branches.length > 0) {
+            let branch = this.branches[1];
+            ctx.translate(-this.girth / 2 + branch.girth / 2, 0);
+            ctx.rotate(branch.angle);
+            branch.draw(ctx);
+            ctx.rotate(-branch.angle);
+            ctx.translate(+this.girth / 2 - branch.girth / 2, 0);
 
-			branch = this.branches[0];
-			ctx.translate(+this.girth / 2 - branch.girth / 2, 0);
-			ctx.rotate(branch.angle);
-			branch.draw(ctx);
-			ctx.rotate(-branch.angle);
-			ctx.translate(-this.girth / 2 + branch.girth / 2, 0);
-		}
+            branch = this.branches[0];
+            ctx.translate(+this.girth / 2 - branch.girth / 2, 0);
+            ctx.rotate(branch.angle);
+            branch.draw(ctx);
+            ctx.rotate(-branch.angle);
+            ctx.translate(-this.girth / 2 + branch.girth / 2, 0);
+        }
 
-		ctx.setTransform(transform);
-	}
+        ctx.setTransform(transform);
+    }
 
-	calcLength = () => {
-		if (this.branches.length > 0 || this.terminated) {
-			return this.length + (this.time - this.lastTime) / 60;
-		}
-		else {
-			return this.length + (this.time - this.lastTime) / 20;
-		}
-	}
+    calcLength = () => {
+        if (this.branches.length > 0 || this.terminated) {
+            return this.length + (this.time - this.lastTime) / 60;
+        }
+        else {
+            return this.length + (this.time - this.lastTime) / 20;
+        }
+    }
 
-	calcGirth = () => {
-		if (this.terminated) {
-			return this.girth;
-		}
-		return this.girth + (this.time - this.lastTime) / 100;
-	}
+    calcGirth = () => {
+        if (this.terminated) {
+            return this.girth;
+        }
+        return this.girth + (this.time - this.lastTime) / 100;
+    }
 
-	shouldBranch = () => {
-		if (this.gen > 4) return false;
-		return (Math.random() < 0.01);
-	}
+    shouldBranch = () => {
+        if (this.gen > 4) return false;
+        return (Math.random() < 0.01);
+    }
 
-	shouldTerminate = () => {
-		if (this.gen > 0) return false;
-		return (this.time - this.start) > 7000;
-	}
+    shouldTerminate = () => {
+        if (this.gen > 0) return false;
+        return (this.time - this.start) > 7000;
+    }
 
-	minBranch = 0.2;
+    minBranch = 0.2;
 
-	calcBranchRatios = () => {
-		const r = Math.random() * (1.0 - this.minBranch * 2);
-		return [
-			this.minBranch + r,
-			(1 - this.minBranch) - r,
-		];
-	}
+    calcBranchRatios = () => {
+        const r = Math.random() * (1.0 - this.minBranch * 2);
+        return [
+            this.minBranch + r,
+            (1 - this.minBranch) - r,
+        ];
+    }
 
-	maxAngle = 50 * Math.PI / 180;
+    maxAngle = 50 * Math.PI / 180;
 
-	calcBranchAngles = (branchRatios) => {
-		// 20% split == [-maxAngle, 0]
-		// 50% split == [-maxAngle / 2, +maxAngle / 2]
-		// 80% split == [0, +maxAngle]
+    calcBranchAngles = (branchRatios) => {
+        // 20% split == [-maxAngle, 0]
+        // 50% split == [-maxAngle / 2, +maxAngle / 2]
+        // 80% split == [0, +maxAngle]
 
-		return([
-			(branchRatios[0] - this.minBranch) / (1 - this.minBranch * 2) * this.maxAngle - this.maxAngle,
-			(branchRatios[1] - this.minBranch) / (1 - this.minBranch * 2) * this.maxAngle,
-		]);
-	}
+        return([
+            (branchRatios[0] - this.minBranch) / (1 - this.minBranch * 2) * this.maxAngle - this.maxAngle,
+            (branchRatios[1] - this.minBranch) / (1 - this.minBranch * 2) * this.maxAngle,
+        ]);
+    }
 }
 
 var trunk;
 var canvas;
 
 const onUpdate = (time) => {
-	if (!trunk) {
-		 trunk = new Branch();
-		 trunk.gen = 0;
-		 trunk.girth = 1;
-		 canvas = document.getElementById("canvas");
-	}
+    if (!trunk) {
+        trunk = new Branch();
+        trunk.gen = 0;
+        trunk.girth = 1;
+        canvas = document.getElementById("canvas");
+    }
 
-	// walk the tree, updating branch ages, and deciding whether to branch further.
-	traverseBranch(trunk, time);
+    // walk the tree, updating branch ages, and deciding whether to branch further.
+    traverseBranch(trunk, time);
 
-	// draw the tree
-	const ctx = canvas.getContext("2d");
-	ctx.reset();
-	ctx.transform(1, 0, 0, -1, canvas.width / 2, canvas.height);
-	trunk.draw(ctx);
+    // draw the tree
+    const ctx = canvas.getContext("2d");
+    ctx.reset();
+    ctx.transform(1, 0, 0, -1, canvas.width / 2, canvas.height);
+    trunk.draw(ctx);
 
-	if (!trunk.terminated) {
-		window.requestAnimationFrame(onUpdate);
-	}
+    if (!trunk.terminated) {
+        window.requestAnimationFrame(onUpdate);
+    }
 }
 
 const traverseBranch = (branch, time) => {
-	branch.grow(time);
+    branch.grow(time);
 
-	if (branch.branches) {
-		for (const child of branch.branches) {
-			traverseBranch(child, time);
-		}
-	}
+    if (branch.branches) {
+        for (const child of branch.branches) {
+            traverseBranch(child, time);
+        }
+    }
 }
 
 const onLoad = () => {
-	console.log("loaded");
-	window.requestAnimationFrame(onUpdate);
+    console.log("loaded");
+    window.requestAnimationFrame(onUpdate);
 }
 
 </script>
 </head>
 <body onLoad="onLoad()">
-	<canvas id="canvas" width="1024" height="768"/>
+    <canvas id="canvas" width="1024" height="768"/>
 </body>
 </html>
