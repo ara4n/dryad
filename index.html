@@ -163,9 +163,6 @@ class Branch {
     }
 }
 
-let trunk;
-let canvas;
-
 // function waitingKeypress() {
 //   return new Promise((resolve) => {
 //     document.addEventListener('keydown', onKeyHandler);
@@ -196,6 +193,8 @@ function mulberry32(a) {
 }
 
 let rand = mulberry32(0);
+let trunk;
+let canvas;
 
 const onUpdate = async (time) => {
     //await waitingKeypress();
@@ -204,6 +203,8 @@ const onUpdate = async (time) => {
         trunk = new Branch();
         trunk.gen = 0;
         canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        ctx.transform(1, 0, 0, -1, canvas.width / 2, canvas.height);
     }
 
     // walk the tree, updating branch ages, and deciding whether to branch further.
@@ -211,8 +212,7 @@ const onUpdate = async (time) => {
 
     // draw the tree
     const ctx = canvas.getContext("2d");
-    ctx.reset();
-    ctx.transform(1, 0, 0, -1, canvas.width / 2, canvas.height);
+    ctx.clearRect(-canvas.width/2, 0, canvas.width, canvas.height);
     trunk.draw(ctx);
 
     if (!trunk.terminated) {
